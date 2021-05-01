@@ -48,7 +48,7 @@ contract ERC20 is IERC20 {
     mapping (address => mapping (address => uint256)) private _allowances;
 
     uint256 private _totalSupply = 1000000000;  // 1 billion
-    address owner_;
+    address internal owner_;
     constructor()  {
         owner_ = msg.sender;
         _balances[owner_] = _totalSupply;
@@ -131,14 +131,15 @@ contract ERC20 is IERC20 {
     }
 }
 
-contract VestingMartin {
+contract VestingMartin is ERC20 {
     using SafeMath for uint256;
     using SafeMath for uint24;
     using SafeMath for uint16;
     
+    ERC20 public token;
     
     modifier onlyAdmin {
-        require(msg.sender == admin, "Not Admin");
+        require(msg.sender == owner_, "Not Admin");
         _;
     }
 
@@ -174,21 +175,19 @@ contract VestingMartin {
         uint8 percent_tSupply;  // percent of total supply 
     }
 
-    ERC20 public token;
-    
     mapping (uint256 => Grant) public tokenGrants;
     mapping (address => uint[]) private activeGrants;
     mapping (VGroup => VestingGroup) parameter;
-    address public admin;
+    //address public admin;
     uint256 public totalVestingCount;
     
     constructor(ERC20 _token)  {
         require(address(_token) != address(0));
-        admin = msg.sender;
+        owner_ = msg.sender;
         token = _token;
     }
 
-    function stakeholderParameter(VGroup _name, uint8 _vestingDurationInMonths, 
+    function vestingGroupParameter(VGroup _name, uint8 _vestingDurationInMonths, 
                         uint8 _vestingCliffInMonths, uint8 _percent) external onlyAdmin{
         require(_vestingDurationInMonths >= _vestingCliffInMonths, "Duration < Cliff");
         parameter[_name] = VestingGroup(_vestingDurationInMonths, _vestingCliffInMonths, _percent);
@@ -196,11 +195,10 @@ contract VestingMartin {
    
     function addTokenGrant(address _recipient, VGroup _name, uint256 _startTime,
                     uint256 _amount)external payable onlyAdmin{
-    //    uint256 amountVestedPerSecond = _amount.div(parameter[_name].vestingDuration*SECONDS_PER_MONTH);
-    //    require(amountVestedPerSecond > 0, "amountVestedPerSecond = 0");
-                  
+
         // Transfer the grant tokens under the control of the vesting contract
-        require(token.transfer(address(this), _amount), "transfer failed");
+        token.approve(owner_, _amount);
+        require(token.transferFrom(owner_, address(this), _amount), "transfer failed");
 
         Grant memory grant = Grant({
             startTime: _startTime == 0 ? currentTime() : _startTime,
@@ -285,7 +283,7 @@ contract VestingMartin {
         uint256 amountNotVested = (tokenGrant.amount.sub(tokenGrant.totalClaimed)).sub(amountVested);
 
         require(token.transfer(recipient, amountVested));
-        require(token.transfer(admin, amountNotVested));
+        require(token.transfer(owner_, amountNotVested));
 
         tokenGrant.startTime = 0;
         tokenGrant.amount = 0;
@@ -312,7 +310,7 @@ contract VestingMartin {
         onlyAdmin
         onlyValidAddress(_newAdmin)
     {
-        admin = _newAdmin;
+        owner_ = _newAdmin;
         emit ChangedAdmin(_newAdmin);
     }
 
