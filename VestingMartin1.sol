@@ -131,7 +131,7 @@ contract ERC20 is IERC20 {
     }
 }
 
-contract VestingMartin is ERC20 {
+contract VestingMartin {
 
     
     
@@ -195,7 +195,7 @@ contract VestingMartin is ERC20 {
     }
    
     function addTokenGrant(address[] memory _recipient, VGroup[] memory _name, 
-                uint256[] memory _startTime,uint256[] memory _amount)external payable onlyAdmin{
+                uint256[] memory _startTime,uint256[] memory _amount)external onlyAdmin{
     require(_recipient.length == _name.length, "Different array length");
     require(_recipient.length == _startTime.length, "Different array length");
     require(_recipient.length == _amount.length, "Different array length");
@@ -206,7 +206,7 @@ contract VestingMartin is ERC20 {
       require(amountVestedPerDay > 0, "0-amount-vested-per-period");
 
         // Transfer the grant tokens under the control of the vesting contract
-        token.approve(owner_, _amount[i]);
+        
         require(token.transferFrom(owner_, address(this), _amount[i]), "transfer failed");
 
         Grant memory grant = Grant({
