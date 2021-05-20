@@ -140,12 +140,22 @@ contract VestingMartin  {
 
     uint24 constant internal SECONDS_PER_DAY = 86400;
 
-    event GrantAdded(address indexed recipient, uint256 vestingId);
+    event GrantAdded(address indexed recipient, uint256 grantId);
     event GrantTokensClaimed(address indexed recipient, uint256 amountClaimed);
     event GrantRemoved(address recipient, uint256 amountVested, uint256 amountNotVested);
     event ChangedAdmin(address admin);
 
-    enum VGroup{ Ecosystem_Development, Founder_Advisors, Team, Seed, Private_Sale}
+    enum VGroup{ Ecosystem_community, 
+                Development_Tech, 
+                Development_Mktg, 
+                Founders, 
+                Team, 
+                Advisors, 
+                DEX_Liquidity, 
+                Seed, 
+                Private_TGE, 
+                Private_Linear, 
+                Public}
 
     struct Grant {
         uint256 startTime;
@@ -196,8 +206,8 @@ contract VestingMartin  {
     
     for(uint i=0;i<_recipient.length;i++) {
      
-      uint256 amountVestedPerDay = _amount[i]/(parameter[_name[i]].vestingDuration*(30));
-      require(amountVestedPerDay > 0, "0-amount-vested-per-period");
+     // uint256 amountVestedPerDay = _amount[i]/(parameter[_name[i]].vestingDuration*(30));
+      //require(amountVestedPerDay > 0, "0-amount-vested-per-period");
 
         // Transfer the grant tokens under the control of the vesting contract
      
@@ -271,8 +281,8 @@ contract VestingMartin  {
     }
 
     /// @notice Terminate token grant transferring all vested tokens to the `_grantId`
-    /// and returning all non-vested tokens to the V12 MultiSig
-    /// Secured to the V12 MultiSig only
+    /// and returning all non-vested tokens to the Admin
+    /// Secured to the Admin only
     /// @param _grantId grantId of the token grant recipient
     function removeTokenGrant(uint256 _grantId) 
         external 
@@ -319,8 +329,3 @@ contract VestingMartin  {
     }
 
 }
-//0xe50938d856B57954D06be1a1525A8141aF40ECD2 owner
-//0xF895391818D39f4F737B321AcA058418837b4F26    1st recipient
-//0xA52537558957a788cBeB4641FaaC1b54A469178f    2nd recipient
-//0xD8db62e2fA47E2bAF307879a9CcCC868dD9b4b6f    ERC20
-//0x0917A38663A5c401DD512Cf7d8dCad33ae7867EB    vesting
